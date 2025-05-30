@@ -1,5 +1,5 @@
 {
-  "name": "notes-app-back-end",
+  "name": "music-api-back-end",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "migrate": "node-pg-migrate"
   },
   "keywords": [],
-  "author": "",
+  "author": "Z4nR",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.52.0",
