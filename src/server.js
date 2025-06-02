@@ -3,6 +3,10 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const ClientError = require('./exceptions/ClientError');
 
+const user = require('./api/users');
+const UserService = require('./services/db/UserService');
+const UserValidator = require('./validations/users');
+
 const album = require('./api/music/album');
 const AlbumService = require('./services/db/AlbumService');
 const AlbumValidator = require('./validations/music/album');
@@ -19,6 +23,15 @@ const init = async () => {
       cors: {
         origin: ['*'],
       },
+    },
+  });
+
+  const userService = new UserService();
+  await server.register({
+    plugin: user,
+    options: {
+      service: userService,
+      validator: UserValidator,
     },
   });
 
