@@ -5,40 +5,24 @@ const shorthands = undefined;
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ * @param run {() => void | undefined}
+ * @returns {Promise<void> | void}
  */
 const up = (pgm) => {
-  pgm.createTable('song', {
+  pgm.createTable('playlists', {
     id: {
-      type: 'varchar(50)',
-      notNull: true,
+      type: 'VARCHAR(50)',
       primaryKey: true,
     },
-    title: {
-      type: 'varchar(255)',
+    name: {
+      type: 'TEXT',
       notNull: true,
     },
-    year: {
-      type: 'integer',
+    owner: {
+      type: 'VARCHAR(50)',
       notNull: true,
-    },
-    genre: {
-      type: 'varchar(100)',
-      notNull: true,
-    },
-    performer: {
-      type: 'varchar(100)',
-      notNull: true,
-    },
-    duration: {
-      type: 'integer',
-      notNull: false,
-    },
-    album_id: {
-      type: 'varchar(50)',
-      references: '"album"',
-      onDelete: 'SET NULL',
-      onUpdate: 'CASCADE',
-      notNull: false,
+      references: 'users(id)',
+      onDelete: 'CASCADE',
     },
     created_at: {
       type: 'timestamp',
@@ -55,9 +39,11 @@ const up = (pgm) => {
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ * @param run {() => void | undefined}
+ * @returns {Promise<void> | void}
  */
 const down = (pgm) => {
-  pgm.dropTable('song', {
+  pgm.dropTable('playlists', {
     ifExists: true,
   });
 };

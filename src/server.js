@@ -1,7 +1,14 @@
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
+
 const ClientError = require('./exceptions/ClientError');
+
+const authentications = require('./api/authentication');
+const AuthenticationsService = require('./services/db/AuthenticationService');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsValidator = require('./validations/authentication');
 
 const user = require('./api/users');
 const UserService = require('./services/db/UserService');
@@ -15,6 +22,10 @@ const song = require('./api/music/song');
 const SongService = require('./services/db/SongService');
 const SongValidator = require('./validations/music/song');
 
+const playlist = require('./api/music/playlist');
+const PlaylistService = require('./services/db/PlaylistService');
+const PlaylistValidator = require('./validations/music/playlist');
+
 const init = async () => {
   const server = Hapi.server({
     port: process.env.PORT,
@@ -26,32 +37,73 @@ const init = async () => {
     },
   });
 
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  server.auth.strategy('musicapi_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_EXPIRE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
+  });
+
+  const authenticationsService = new AuthenticationsService();
   const userService = new UserService();
-  await server.register({
-    plugin: user,
-    options: {
-      service: userService,
-      validator: UserValidator,
-    },
-  });
-
   const albumService = new AlbumService();
-  await server.register({
-    plugin: album,
-    options: {
-      service: albumService,
-      validator: AlbumValidator,
-    },
-  });
-
   const songService = new SongService();
-  await server.register({
-    plugin: song,
-    options: {
-      service: songService,
-      validator: SongValidator,
+  const playlistService = new PlaylistService();
+
+  await server.register([
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        userService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
+      },
     },
-  });
+    {
+      plugin: user,
+      options: {
+        service: userService,
+        validator: UserValidator,
+      },
+    },
+    {
+      plugin: album,
+      options: {
+        service: albumService,
+        validator: AlbumValidator,
+      },
+    },
+    {
+      plugin: song,
+      options: {
+        service: songService,
+        validator: SongValidator,
+      },
+    },
+    {
+      plugin: playlist,
+      options: {
+        service: playlistService,
+        validator: PlaylistValidator,
+      },
+    },
+  ]);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
