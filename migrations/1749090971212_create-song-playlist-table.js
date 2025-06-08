@@ -17,7 +17,7 @@ const up = (pgm) => {
     playlist_id: {
       type: 'VARCHAR(50)',
       notNull: true,
-      references: 'playlists(id)',
+      references: 'playlist(id)',
       onDelete: 'CASCADE',
     },
     song_id: {

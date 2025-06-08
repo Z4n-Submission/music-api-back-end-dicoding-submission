@@ -59,7 +59,7 @@ const init = async () => {
     }),
   });
 
-  const authenticationsService = new AuthenticationsService();
+  const authenticationService = new AuthenticationsService();
   const userService = new UserService();
   const albumService = new AlbumService();
   const songService = new SongService();
@@ -69,8 +69,8 @@ const init = async () => {
     {
       plugin: authentications,
       options: {
-        authenticationsService,
-        userService,
+        authenticationsService: authenticationService,
+        usersService: userService,
         tokenManager: TokenManager,
         validator: AuthenticationsValidator,
       },
@@ -118,14 +118,24 @@ const init = async () => {
     }
 
     if (response.isBoom) {
-      console.error('SERVER ERROR:', response);
+      const { statusCode, payload } = response.output;
 
-      const newResponse = h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami',
-      });
-      newResponse.code(500);
-      return newResponse;
+      if (statusCode >= 400 && statusCode < 500) {
+        return h
+          .response({
+            status: 'fail',
+            message: payload.message,
+          })
+          .code(statusCode);
+      }
+
+      console.error('SERVER ERROR:', response);
+      return h
+        .response({
+          status: 'error',
+          message: 'Maaf, terjadi kegagalan pada server kami',
+        })
+        .code(500);
     }
 
     return h.continue;

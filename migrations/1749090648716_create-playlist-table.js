@@ -9,7 +9,7 @@ const shorthands = undefined;
  * @returns {Promise<void> | void}
  */
 const up = (pgm) => {
-  pgm.createTable('playlists', {
+  pgm.createTable('playlist', {
     id: {
       type: 'VARCHAR(50)',
       primaryKey: true,
@@ -43,7 +43,7 @@ const up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 const down = (pgm) => {
-  pgm.dropTable('playlists', {
+  pgm.dropTable('playlist', {
     ifExists: true,
   });
 };

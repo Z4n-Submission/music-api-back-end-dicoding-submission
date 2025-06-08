@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const pool = require('./BasePool');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const AuthenticationError = require('../../exceptions/AuthenticationError');
+const AuthenticationError = require('../../exceptions/AuthenticationError.js');
 
 class UserService {
   constructor() {
