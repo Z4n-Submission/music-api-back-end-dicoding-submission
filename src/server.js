@@ -30,7 +30,11 @@ const exportPlaylist = require('./api/export');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validations/export');
 
+const AlbumLikesService = require('./services/db/AlbumLikeService');
+const albumLikes = require('./api/music/albumLikes');
+
 const StorageService = require('./services/storage/StorageService');
+const CacheService = require('./services/redis/CacheService');
 
 const init = async () => {
   const server = Hapi.server({
@@ -65,12 +69,14 @@ const init = async () => {
     }),
   });
 
+  const cacheService = new CacheService();
   const authenticationService = new AuthenticationsService();
   const userService = new UserService();
   const albumService = new AlbumService();
   const songService = new SongService();
   const playlistService = new PlaylistService();
-  const storageService = new StorageService('../uploads/cover/album');
+  const albumLikesService = new AlbumLikesService(cacheService);
+  const storageAlbumCoverService = new StorageService('../uploads/cover/album');
 
   await server.register([
     {
@@ -93,7 +99,7 @@ const init = async () => {
       plugin: album,
       options: {
         albumService,
-        storageService,
+        storageService: storageAlbumCoverService,
         validator: AlbumValidator,
       },
     },
@@ -117,6 +123,12 @@ const init = async () => {
         exportService: ProducerService,
         playlistService,
         validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: albumLikes,
+      options: {
+        service: albumLikesService,
       },
     },
   ]);

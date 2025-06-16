@@ -38,6 +38,11 @@ const routes = (handler) => [
       },
     },
   },
+  {
+    method: 'GET',
+    path: '/albums/{id}/covers',
+    handler: handler.getAlbumCoverHandler,
+  },
 ];
 
 module.exports = routes;

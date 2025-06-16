@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 class AlbumHandler {
   constructor(albumService, storageService, validator) {
     this.albumService = albumService;
@@ -10,6 +13,7 @@ class AlbumHandler {
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
     this.postUploadCoverHandler = this.postUploadCoverHandler.bind(this);
+    this.getAlbumCoverHandler = this.getAlbumCoverHandler.bind(this);
   }
 
   async getAlbumsHandler() {
@@ -90,6 +94,43 @@ class AlbumHandler {
         message: 'Sampul berhasil diunggah',
       })
       .code(201);
+  }
+
+  async getAlbumCoverHandler(request, h) {
+    const { id: albumId } = request.params;
+
+    const album = await this.albumService.getAlbumById(albumId);
+
+    if (!album.coverUrl) {
+      return h
+        .response({
+          status: 'fail',
+          message: 'Album tidak memiliki sampul',
+        })
+        .code(404);
+    }
+
+    const filename = path.basename(album.coverUrl);
+
+    const filePath = path.resolve(
+      process.cwd(),
+      '../uploads/cover/album',
+      filename
+    );
+
+    console.log('Resolved file path:', filePath);
+
+    if (!fs.existsSync(filePath)) {
+      return h
+        .response({
+          status: 'fail',
+          message: 'File sampul tidak ditemukan',
+        })
+        .code(404);
+    }
+
+    const fileStream = fs.createReadStream(filePath);
+    return h.response(fileStream).type('image/jpeg');
   }
 }
 
