@@ -30,6 +30,8 @@ const exportPlaylist = require('./api/export');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validations/export');
 
+const StorageService = require('./services/storage/StorageService');
+
 const init = async () => {
   const server = Hapi.server({
     port: process.env.PORT,
@@ -68,6 +70,7 @@ const init = async () => {
   const albumService = new AlbumService();
   const songService = new SongService();
   const playlistService = new PlaylistService();
+  const storageService = new StorageService('../uploads/cover/album');
 
   await server.register([
     {
@@ -89,7 +92,8 @@ const init = async () => {
     {
       plugin: album,
       options: {
-        service: albumService,
+        albumService,
+        storageService,
         validator: AlbumValidator,
       },
     },
@@ -155,6 +159,12 @@ const init = async () => {
 
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);
+  console.table(
+    server.table().map((route) => ({
+      method: route.method,
+      path: route.path,
+    }))
+  );
 };
 
 init();

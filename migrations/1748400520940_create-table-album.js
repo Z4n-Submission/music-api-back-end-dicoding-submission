@@ -21,6 +21,10 @@ const up = (pgm) => {
       type: 'integer',
       notNull: true,
     },
+    cover: {
+      type: 'text',
+      notNull: false,
+    },
     created_at: {
       type: 'timestamp',
       notNull: true,

@@ -1,6 +1,7 @@
 class AlbumHandler {
-  constructor(service, validator) {
-    this.service = service;
+  constructor(albumService, storageService, validator) {
+    this.albumService = albumService;
+    this.storageService = storageService;
     this.validator = validator;
 
     this.getAlbumsHandler = this.getAlbumsHandler.bind(this);
@@ -8,10 +9,11 @@ class AlbumHandler {
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postUploadCoverHandler = this.postUploadCoverHandler.bind(this);
   }
 
   async getAlbumsHandler() {
-    const albums = await this.service.getAlbums();
+    const albums = await this.albumService.getAlbums();
     return {
       status: 'success',
       data: {
@@ -22,7 +24,7 @@ class AlbumHandler {
 
   async getAlbumByIdHandler(request) {
     const { id } = request.params;
-    const album = await this.service.getAlbumById(id);
+    const album = await this.albumService.getAlbumById(id);
 
     return {
       status: 'success',
@@ -35,7 +37,7 @@ class AlbumHandler {
   async postAlbumHandler(request, h) {
     this.validator.validateAlbumPayload(request.payload);
 
-    const albumId = await this.service.addAlbum(request.payload);
+    const albumId = await this.albumService.addAlbum(request.payload);
     console.log(`Album dengan id ${albumId} berhasil ditambahkan`);
 
     return h
@@ -53,7 +55,7 @@ class AlbumHandler {
     this.validator.validateAlbumPayload(request.payload);
     const { id } = request.params;
 
-    await this.service.editAlbumById(id, request.payload);
+    await this.albumService.editAlbumById(id, request.payload);
 
     return {
       status: 'success',
@@ -63,12 +65,31 @@ class AlbumHandler {
 
   async deleteAlbumByIdHandler(request) {
     const { id } = request.params;
-    await this.service.deleteAlbumById(id);
+    await this.albumService.deleteAlbumById(id);
 
     return {
       status: 'success',
       message: 'Album berhasil dihapus',
     };
+  }
+
+  async postUploadCoverHandler(request, h) {
+    const { cover } = request.payload;
+    const { id: albumId } = request.params;
+
+    this.validator.validateAlbumCover(cover.hapi.headers);
+
+    const fileLocation = await this.storageService.writeFile(cover, cover.hapi);
+
+    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/uploads/cover/album/${fileLocation}`;
+    await this.albumService.updateAlbumCover(albumId, coverUrl);
+
+    return h
+      .response({
+        status: 'success',
+        message: 'Sampul berhasil diunggah',
+      })
+      .code(201);
   }
 }
 
