@@ -171,12 +171,12 @@ const init = async () => {
 
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);
-  console.table(
-    server.table().map((route) => ({
-      method: route.method,
-      path: route.path,
-    }))
-  );
+  // console.table(
+  //   server.table().map((route) => ({
+  //     method: route.method,
+  //     path: route.path,
+  //   }))
+  // );
 };
 
 init();
